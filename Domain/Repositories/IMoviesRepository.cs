@@ -1,3 +1,4 @@
+using Movies_EFCore.Domain.DTOs;
 using Movies_EFCore.Entities;
 
 namespace Movies_EFCore.Domain.Repositories;
@@ -42,5 +43,8 @@ public interface IMoviesRepository
     Task AddActorToMovieAsync(int movieId, int actorId);
     
     Task RemoveActorFromMovieAsync(int movieId, int actorId);
-
+    
+    
+    Task<List<MovieReleaseSummary>> FetchReleaseSummariesAsync();
+    
 }

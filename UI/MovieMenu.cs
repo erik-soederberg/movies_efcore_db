@@ -25,6 +25,7 @@ public class MovieMenu
             Console.WriteLine("4. Delete movie");
             Console.WriteLine("5. Add actor to movie");
             Console.WriteLine("6. Remove actor from movie");
+            Console.WriteLine("7. Show movies sorted by release year");
             Console.WriteLine("0. Back");
 
             Console.Write("Choice: ");
@@ -61,6 +62,10 @@ public class MovieMenu
                 
                 case 6:
                     await RemoveActorFromMovieAsync();
+                    break;
+                
+                case 7:
+                    await FetchReleaseSummariesAsync();
                     break;
                 
 
@@ -276,6 +281,18 @@ public class MovieMenu
         Console.WriteLine("\nPress any key to return...");
         Console.ReadKey();
         
+    }
+
+    public async Task FetchReleaseSummariesAsync()
+    {
+        Console.Clear();
+        
+        var movies = await _movieService.FetchReleaseSummariesAsync();
+
+        foreach (var m in movies)
+        {
+            Console.WriteLine($"{m.Year} - {m.Title} - {m.Director}");
+        }
     }
 
 }

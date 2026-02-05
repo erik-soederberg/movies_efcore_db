@@ -1,3 +1,4 @@
+using Movies_EFCore.Domain.DTOs;
 using Movies_EFCore.Domain.Repositories;
 using Movies_EFCore.Entities;
 
@@ -59,6 +60,11 @@ public class MovieService
     public async Task RemoveActorFromMovieAsync(int movieId, int actorId)
     {
         await _moviesRepository.RemoveActorFromMovieAsync(movieId, actorId);
+    }
+
+    public async Task<List<MovieReleaseSummary>> FetchReleaseSummariesAsync()
+    {
+        return await _moviesRepository.FetchReleaseSummariesAsync();
     }
 
 }

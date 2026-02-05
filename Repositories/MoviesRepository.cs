@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Movies_EFCore.Data;
+using Movies_EFCore.Domain.DTOs;
 using Movies_EFCore.Domain.Repositories;
 using Movies_EFCore.Entities;
 
@@ -194,18 +195,22 @@ public class MoviesRepository : IMoviesRepository
         await db.SaveChangesAsync();
     }
 
+    public async Task<List<MovieReleaseSummary>> FetchReleaseSummariesAsync()
+    {
+        await using var db = new AppDbContext();
+
+        return await db.Movies
+            .AsNoTracking()
+            .Select(m => new MovieReleaseSummary
+            {
+                Title = m.MovieTitle,
+                Year = m.ReleaseYear,
+                Director = m.Director.Name
+            })
+            .OrderBy(m => m.Year)
+            .ToListAsync();
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    }
+                
     
 }
