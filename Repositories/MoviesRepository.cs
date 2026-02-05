@@ -209,8 +209,29 @@ public class MoviesRepository : IMoviesRepository
             })
             .OrderBy(m => m.Year)
             .ToListAsync();
-    
     }
+    
+    
+    
+    public async Task<Dictionary<string, int>> FetchDirectorsMoviesCountAsync()
+    {
+        await using var db = new AppDbContext();
+
+        var result = await db.Movies
+            .AsNoTracking()
+            .Include(m => m.Director)
+            .GroupBy(m => m.Director!.Name)
+            .Select(g => new { Director = g.Key, Count = g.Count() })
+            .ToListAsync();
+
+
+        return result.ToDictionary(r => r.Director, r => r.Count);
+        
+    }
+    
+
+    }
+
+    
                 
     
-}

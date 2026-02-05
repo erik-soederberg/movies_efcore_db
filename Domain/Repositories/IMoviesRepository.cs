@@ -47,4 +47,6 @@ public interface IMoviesRepository
     
     Task<List<MovieReleaseSummary>> FetchReleaseSummariesAsync();
     
+    Task<Dictionary<string,int>> FetchDirectorsMoviesCountAsync();
+    
 }

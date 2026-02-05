@@ -1,5 +1,5 @@
 namespace Movies_EFCore.UI;
-using Movies_EFCore.Services;
+using Services;
 
 
 public class MovieMenu
@@ -26,6 +26,7 @@ public class MovieMenu
             Console.WriteLine("5. Add actor to movie");
             Console.WriteLine("6. Remove actor from movie");
             Console.WriteLine("7. Show movies sorted by release year");
+            Console.WriteLine("8. Show how many movies each director has made");
             Console.WriteLine("0. Back");
 
             Console.Write("Choice: ");
@@ -66,6 +67,10 @@ public class MovieMenu
                 
                 case 7:
                     await FetchReleaseSummariesAsync();
+                    break;
+                
+                case 8: 
+                    await FetchDirectorsMoviesCountAsync();
                     break;
                 
 
@@ -283,7 +288,7 @@ public class MovieMenu
         
     }
 
-    public async Task FetchReleaseSummariesAsync()
+    private async Task FetchReleaseSummariesAsync()
     {
         Console.Clear();
         
@@ -293,6 +298,23 @@ public class MovieMenu
         {
             Console.WriteLine($"{m.Year} - {m.Title} - {m.Director}");
         }
+    }
+    
+    private async Task FetchDirectorsMoviesCountAsync()
+    {
+        Console.Clear();
+        
+        var counts = await _movieService.FetchDirectorsMoviesCountAsync();
+
+        Console.WriteLine("Antal filmer per regissör:\n");
+
+        foreach (var c in counts)
+        {
+            Console.WriteLine($"{c.Key} has directed {c.Value} movies.");
+        }
+
+        Console.WriteLine("\nTryck på valfri tangent för att gå tillbaka...");
+        Console.ReadKey();
     }
 
 }

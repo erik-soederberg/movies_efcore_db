@@ -66,5 +66,11 @@ public class MovieService
     {
         return await _moviesRepository.FetchReleaseSummariesAsync();
     }
+    
+    
+    public async Task<Dictionary<string, int>> FetchDirectorsMoviesCountAsync()
+    {
+        return await _moviesRepository.FetchDirectorsMoviesCountAsync();
+    }
 
 }
