@@ -1,7 +1,6 @@
 namespace Movies_EFCore.UI;
 using Services;
 
-
 public class MovieMenu
 {
     private readonly MovieService _movieService;
@@ -41,43 +40,15 @@ public class MovieMenu
 
             switch (choice)
             {
-                case 1:
-                    await CreateMovieAsync();
-                    break;
-
-                case 2:
-                    await ListAllMoviesAsync();
-                    break;
-
-                case 3:
-                    await UpdateMovieAsync();
-                    break;
-
-                case 4:
-                    await DeleteMovieAsync();
-                    break;
-                
-                case 5:
-                    await AddActorToMovieAsync();
-                    break;
-                
-                case 6:
-                    await RemoveActorFromMovieAsync();
-                    break;
-                
-                case 7:
-                    await FetchReleaseSummariesAsync();
-                    break;
-                
-                case 8: 
-                    await FetchDirectorsMoviesCountAsync();
-                    break;
-                
-
-                case 0:
-                    running = false;
-                    break;
-
+                case 1: await CreateMovieWithTransactionAsync(); break;
+                case 2: await ListAllMoviesAsync(); break;
+                case 3: await UpdateMovieAsync(); break;
+                case 4: await DeleteMovieAsync(); break;
+                case 5: await AddActorToMovieAsync(); break;
+                case 6: await RemoveActorFromMovieAsync(); break;
+                case 7: await FetchReleaseSummariesAsync(); break;
+                case 8: await FetchDirectorsMoviesCountAsync(); break;
+                case 0: running = false; break;
                 default:
                     Console.WriteLine("Invalid choice");
                     Console.ReadKey();
@@ -85,44 +56,36 @@ public class MovieMenu
             }
         }
     }
-    
-    
 
-    public async Task CreateMovieAsync()
+    public async Task CreateMovieWithTransactionAsync()
     {
         Console.Clear();
 
-        Console.WriteLine("Title: ");
+        Console.Write("Title: ");
         var title = Console.ReadLine();
 
-        Console.WriteLine("Year: ");
+        Console.Write("Year: ");
         if (!int.TryParse(Console.ReadLine(), out var year))
         {
             Console.WriteLine("Invalid year");
+            Console.ReadKey();
             return;
         }
 
-        Console.WriteLine("Actors (comma separated): ");
+        Console.Write("Actors (comma separated): ");
         var actorInput = Console.ReadLine() ?? "";
-        var actorNames = actorInput
-            .Split(',', StringSplitOptions.RemoveEmptyEntries)
-            .Select(a => a.Trim())
-            .ToList();
+        var actorNames = actorInput.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(a => a.Trim()).ToList();
 
-        Console.WriteLine("Director: ");
-        var directorInput = Console.ReadLine() ?? "";
-        var directorNames = directorInput;
+        Console.Write("Director: ");
+        var directorName = Console.ReadLine() ?? "";
 
-        Console.WriteLine("Genre: ");
+        Console.Write("Genres (comma separated): ");
         var genreInput = Console.ReadLine() ?? "";
-        var genreNames = genreInput
-            .Split(',', StringSplitOptions.RemoveEmptyEntries)
-            .Select(a => a.Trim())
-            .ToList();
+        var genreNames = genreInput.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(g => g.Trim()).ToList();
 
         try
         {
-            var movie = await _movieService.CreateMovieAsync(title!, year, actorNames, directorNames, genreNames);
+            var movie = await _movieService.CreateMovieAsync(title!, year, actorNames, directorName, genreNames);
             Console.WriteLine($"Movie created with ID {movie.MovieId}");
         }
         catch (Exception ex)
@@ -132,24 +95,17 @@ public class MovieMenu
 
         Console.ReadKey();
     }
-    
+
     public async Task ListAllMoviesAsync()
     {
         Console.Clear();
-
         var movies = await _movieService.ListAllMoviesAsync();
 
         foreach (var movie in movies)
         {
-            // Skriv ut filmens ID, titel och år
             Console.WriteLine($"{movie.MovieId} - {movie.MovieTitle} ({movie.ReleaseYear})");
-
-            // Skriv ut aktörer om det finns några
-            if (movie.Actors.Count != 0)
-            {
+            if (movie.Actors.Count > 0)
                 Console.WriteLine("Actors: " + string.Join(", ", movie.Actors.Select(a => a.Name)));
-
-            }
         }
 
         Console.ReadKey();
@@ -158,29 +114,35 @@ public class MovieMenu
     public async Task DeleteMovieAsync()
     {
         Console.Clear();
-
-        Console.WriteLine($"Enter movie ID to delete from database: ");
+        Console.Write("Enter movie ID to delete: ");
         var input = Console.ReadLine();
-            
-        Console.WriteLine($"Are you sure you want to delete this movie? (y/n)");
-        var confirm = Console.ReadLine()?.ToLower();    
-            
-        if (confirm != "y") {
+
+        Console.Write("Are you sure you want to delete this movie? (y/n): ");
+        var confirm = Console.ReadLine()?.ToLower();
+
+        if (confirm != "y")
+        {
             Console.WriteLine("Delete cancelled.");
-            Console.WriteLine("\nPress any key to return...");
             Console.ReadKey();
+            return; // Viktigt!
         }
 
         if (int.TryParse(input, out var movieId))
         {
-            await _movieService.DeleteMovieAsync(movieId);
-            Console.WriteLine("Movie deleted.");
+            try
+            {
+                await _movieService.DeleteMovieAsync(movieId);
+                Console.WriteLine("Movie deleted.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
         else
         {
             Console.WriteLine("Invalid ID.");
         }
-
         Console.ReadKey();
     }
 
@@ -204,34 +166,73 @@ public class MovieMenu
 
         Console.Write("New actors (comma separated): ");
         var actorInput = Console.ReadLine() ?? "";
-
-        var actorNames = actorInput
-            .Split(',', StringSplitOptions.RemoveEmptyEntries)
-            .Select(a => a.Trim())
-            .ToList();
+        var actorNames = actorInput.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(a => a.Trim()).ToList();
 
         Console.Write("New director: ");
         var directorName = Console.ReadLine() ?? "";
 
         Console.Write("New genres (comma separated): ");
         var genreInput = Console.ReadLine() ?? "";
-
-        var genreNames = genreInput
-            .Split(',', StringSplitOptions.RemoveEmptyEntries)
-            .Select(g => g.Trim())
-            .ToList();
+        var genreNames = genreInput.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(g => g.Trim()).ToList();
 
         try
         {
-            await _movieService.UpdateMovieAsync(
-                movieId,
-                title,
-                year,
-                actorNames,
-                directorName,
-                genreNames);
-
+            await _movieService.UpdateMovieAsync(movieId, title, year, actorNames, directorName, genreNames);
             Console.WriteLine("Movie updated.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        Console.ReadKey();
+    }
+
+    private async Task AddActorToMovieAsync()
+    {
+        Console.Clear();
+
+        Console.Write("Movie ID: ");
+        if (!int.TryParse(Console.ReadLine(), out var movieId)) { Console.WriteLine("Invalid ID"); Console.ReadKey(); return; }
+
+        Console.Write("Actor ID: ");
+        if (!int.TryParse(Console.ReadLine(), out var actorId)) { Console.WriteLine("Invalid ID"); Console.ReadKey(); return; }
+
+        try
+        {
+            await _movieService.AddActorToMovieAsync(movieId, actorId);
+            Console.WriteLine("Actor added to movie.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        Console.ReadKey();
+    }
+
+    private async Task RemoveActorFromMovieAsync()
+    {
+        Console.Clear();
+
+        Console.Write("Movie ID: ");
+        if (!int.TryParse(Console.ReadLine(), out var movieId)) { Console.WriteLine("Invalid ID"); Console.ReadKey(); return; }
+
+        Console.Write("Actor ID: ");
+        if (!int.TryParse(Console.ReadLine(), out var actorId)) { Console.WriteLine("Invalid ID"); Console.ReadKey(); return; }
+
+        Console.Write("Are you sure you want to remove this actor from the movie? (y/n): ");
+        var confirm = Console.ReadLine()?.ToLower();
+
+        if (confirm != "y")
+        {
+            Console.WriteLine("Operation cancelled.");
+            Console.ReadKey();
+            return;
+        }
+
+        try
+        {
+            await _movieService.RemoveActorFromMovieAsync(movieId, actorId);
+            Console.WriteLine("Actor removed from movie.");
         }
         catch (Exception ex)
         {
@@ -241,80 +242,29 @@ public class MovieMenu
         Console.ReadKey();
     }
 
-    
-    private async Task AddActorToMovieAsync()
-    {
-        Console.Clear();
-
-        Console.Write("Movie ID: ");
-        var movieId = int.Parse(Console.ReadLine()!);
-
-        Console.Write("Actor ID: ");
-        var actorId = int.Parse(Console.ReadLine()!);
-
-        await _movieService.AddActorToMovieAsync(movieId, actorId);
-
-        Console.WriteLine("Actor added to movie.");
-        Console.ReadKey();
-    }
-
-    private async Task RemoveActorFromMovieAsync()
-    {
-        Console.Clear();
-        
-        Console.Write("Movie ID: ");
-        var movieId = int.Parse(Console.ReadLine()!);
-
-        Console.Write("Actor ID: ");
-        var actorId = int.Parse(Console.ReadLine()!);
-        
-        Console.WriteLine("\nAre you sure you want to delete this actor from the movie? (y/n): ");
-        var confirm = Console.ReadLine()?.ToLower();
-
-        if (confirm != "y")
-        {
-            Console.WriteLine("Update cancelled.");
-            Console.WriteLine("\nPress any key to return...");
-            Console.ReadKey();
-            return;
-        }
-        
-        await _movieService.RemoveActorFromMovieAsync(movieId, actorId);
-        
-        Console.WriteLine("Actor removed from movie.");
-        
-        Console.WriteLine("\nPress any key to return...");
-        Console.ReadKey();
-        
-    }
-
     private async Task FetchReleaseSummariesAsync()
     {
         Console.Clear();
-        
-        var movies = await _movieService.FetchReleaseSummariesAsync();
 
+        var movies = await _movieService.FetchReleaseSummariesAsync();
         foreach (var m in movies)
         {
             Console.WriteLine($"{m.Year} - {m.Title} - {m.Director}");
         }
-    }
-    
-    private async Task FetchDirectorsMoviesCountAsync()
-    {
-        Console.Clear();
-        
-        var counts = await _movieService.FetchDirectorsMoviesCountAsync();
 
-        Console.WriteLine("Antal filmer per regissör:\n");
-
-        foreach (var c in counts)
-        {
-            Console.WriteLine($"{c.Key} has directed {c.Value} movies.");
-        }
-
-        Console.WriteLine("\nTryck på valfri tangent för att gå tillbaka...");
         Console.ReadKey();
     }
 
+    private async Task FetchDirectorsMoviesCountAsync()
+    {
+        Console.Clear();
+
+        var counts = await _movieService.FetchDirectorsMoviesCountAsync();
+        Console.WriteLine("Antal filmer per regissör:\n");
+
+        foreach (var c in counts)
+            Console.WriteLine($"{c.Key} has directed {c.Value} movies.");
+
+        Console.ReadKey();
+    }
 }

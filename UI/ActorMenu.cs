@@ -82,12 +82,10 @@ public class ActorMenu
             Console.WriteLine("Invalid input!");
             return;
         }
-
         try
         {
             var actor = await _actorService.CreateActorAsync(actorName, actorAge);
             Console.WriteLine($"Actor {actor.Name} created successfully.");
-
         }
 
         catch (Exception ex)
@@ -96,7 +94,7 @@ public class ActorMenu
         }
         Console.ReadKey();
     }
-    
+
     public async Task DeleteActorAsync()
     {
         Console.Clear();
@@ -106,15 +104,35 @@ public class ActorMenu
 
         if (int.TryParse(input, out var actorId))
         {
-            await _actorService.DeleteActorAsync(actorId);
+            Console.WriteLine($"Are you sure you want to delete actor with ID {actorId}? (y/n)");
+            var confirm = Console.ReadLine()?.ToLower();
+
+            if (confirm != "y")
+            {
+                Console.WriteLine("Delete cancelled.");
+                Console.ReadKey();
+                return;
+            }
+
+            try
+            {
+                await _actorService.DeleteActorAsync(actorId);
+                Console.WriteLine("Actor deleted successfully.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+
+            Console.ReadKey();
         }
         else
         {
-            Console.WriteLine("Invalid input!");
+            {
+                Console.WriteLine("Invalid ID input!");
+            }
+            Console.ReadKey();
         }
-        
-        Console.ReadKey();
-        
     }
 
     public async Task ListAllActorsAsync()
@@ -135,9 +153,7 @@ public class ActorMenu
         {
             Console.WriteLine("No actors found");
         }
-        
         Console.ReadKey();
-
     }
     
     public async Task UpdateActorAsync()
@@ -167,7 +183,6 @@ public class ActorMenu
                     Console.ReadKey();
                     return;
                 }
-
                 try
                 {
                     await _actorService.UpdateActorAsync(actorId, newName, newAge);

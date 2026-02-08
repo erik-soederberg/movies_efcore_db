@@ -7,14 +7,12 @@ namespace Movies_EFCore.Services;
 public class MovieService
 {
     private readonly IMoviesRepository _moviesRepository;
-
-    // 1. Service tar emot repository via constructor
+    
     public MovieService(IMoviesRepository moviesRepository)
     {
         _moviesRepository = moviesRepository;
     }
-
-    // 2. Use case: skapa film
+    
     public async Task<Movie> CreateMovieAsync(
         string title, 
         int year, 
@@ -22,25 +20,23 @@ public class MovieService
         string directorNames, 
         List<string> genreNames)
     {
-        // 3. Delegera datalagring till repository
-        return await _moviesRepository.CreateMovieAsync(title, year, actorNames, directorNames, genreNames);
+        return await _moviesRepository.CreateMovieWithTransactionAsync(title, year, actorNames, directorNames, genreNames);
     }
     
 
     public async Task<List<Movie>> ListAllMoviesAsync()
     {
-        
         var movies = await _moviesRepository.ListAllMoviesAsync();
         
         return movies;
     }
 
-    public async Task<List<Movie>> DeleteMovieAsync(int movieId)
-    {
-        return await _moviesRepository.DeleteMovieAsync(movieId);
+    public async Task DeleteMovieAsync(int movieId)
+    { 
+        await _moviesRepository.DeleteMovieAsync(movieId);
     }
 
-    public async Task<List<Movie>> UpdateMovieAsync(
+    public async Task UpdateMovieAsync(
         int movieId,
         string title,
         int year,
@@ -48,8 +44,7 @@ public class MovieService
         string directorName,
         List<string> genreNames)
     {
-
-        return await _moviesRepository.UpdateMovieAsync(movieId, title, year, actorNames, directorName, genreNames);
+        await _moviesRepository.UpdateMovieAsync(movieId, title, year, actorNames, directorName, genreNames);
     }
     
     public async Task AddActorToMovieAsync(int movieId, int actorId)
@@ -66,7 +61,6 @@ public class MovieService
     {
         return await _moviesRepository.FetchReleaseSummariesAsync();
     }
-    
     
     public async Task<Dictionary<string, int>> FetchDirectorsMoviesCountAsync()
     {

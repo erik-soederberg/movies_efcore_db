@@ -5,7 +5,6 @@ namespace Movies_EFCore.Data;
 
 public class AppDbContext : DbContext
 {
-    // Entiteter
     public DbSet<Movie> Movies { get; set; } = null!;
     public DbSet<Actor> Actors { get; set; } = null!;
     public DbSet<Director> Directors { get; set; } = null!;
@@ -13,13 +12,9 @@ public class AppDbContext : DbContext
     public DbSet<Genre> Genres { get; set; } = null!;
     
     public DbSet<MovieActor> MovieActors { get; set; } = null!;
-
-
-
-    // Konfigurera databasanslutning
+    
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        // PostgreSQL-anslutning
         optionsBuilder.UseNpgsql("Host=localhost;Database=movies_db;Username=postgres;Password=2860");
     }
 
@@ -97,7 +92,6 @@ public class AppDbContext : DbContext
         
         modelBuilder.Entity<MovieActor>()
             .HasKey(ma => new { ma.MovieId, ma.ActorId });
-
         
         /*
          * Constraints
@@ -246,24 +240,24 @@ public class AppDbContext : DbContext
         );
         
         modelBuilder.Entity<MovieActor>().HasData(
-            new MovieActor { MovieId = 1, ActorId = 1 }, // Inception - Leonardo DiCaprio
-            new MovieActor { MovieId = 1, ActorId = 2 }, // Inception - Brad Pitt
-            new MovieActor { MovieId = 2, ActorId = 1 }, // Interstellar - Leonardo DiCaprio
-            new MovieActor { MovieId = 3, ActorId = 5 }, // Jurassic Park - Tom Hanks
-            new MovieActor { MovieId = 4, ActorId = 5 }, // E.T. - Tom Hanks
-            new MovieActor { MovieId = 5, ActorId = 2 }, // Pulp Fiction - Brad Pitt
-            new MovieActor { MovieId = 5, ActorId = 3 }, // Pulp Fiction - Morgan Freeman
-            new MovieActor { MovieId = 6, ActorId = 2 }, // Django Unchained - Brad Pitt
-            new MovieActor { MovieId = 7, ActorId = 1 }, // The Wolf of Wall Street - Leonardo DiCaprio
-            new MovieActor { MovieId = 8, ActorId = 1 }, // Titanic - Leonardo DiCaprio
-            new MovieActor { MovieId = 8, ActorId = 4 }, // Titanic - Scarlett Johansson
-            new MovieActor { MovieId = 9, ActorId = 16 }, // Gladiator - Matt Damon
-            new MovieActor { MovieId = 10, ActorId = 10 }, // LOTR - Chris Hemsworth
-            new MovieActor { MovieId = 10, ActorId = 12 }, // LOTR - Chris Pratt
-            new MovieActor { MovieId = 11, ActorId = 7 }, // Alice in Wonderland - Johnny Depp
-            new MovieActor { MovieId = 12, ActorId = 5 }, // Gran Torino - Tom Hanks
-            new MovieActor { MovieId = 13, ActorId = 2 }, // Fight Club - Brad Pitt
-            new MovieActor { MovieId = 13, ActorId = 16 } // Fight Club - Matt Damon
+            new MovieActor { MovieId = 1, ActorId = 1 },
+            new MovieActor { MovieId = 1, ActorId = 2 }, 
+            new MovieActor { MovieId = 2, ActorId = 1 },
+            new MovieActor { MovieId = 3, ActorId = 5 }, 
+            new MovieActor { MovieId = 4, ActorId = 5 }, 
+            new MovieActor { MovieId = 5, ActorId = 2 }, 
+            new MovieActor { MovieId = 5, ActorId = 3 }, 
+            new MovieActor { MovieId = 6, ActorId = 2 }, 
+            new MovieActor { MovieId = 7, ActorId = 1 },
+            new MovieActor { MovieId = 8, ActorId = 1 }, 
+            new MovieActor { MovieId = 8, ActorId = 4 }, 
+            new MovieActor { MovieId = 9, ActorId = 16 }, 
+            new MovieActor { MovieId = 10, ActorId = 10 },
+            new MovieActor { MovieId = 10, ActorId = 12 }, 
+            new MovieActor { MovieId = 11, ActorId = 7 }, 
+            new MovieActor { MovieId = 12, ActorId = 5 }, 
+            new MovieActor { MovieId = 13, ActorId = 2 },
+            new MovieActor { MovieId = 13, ActorId = 16 } 
         );
 
         

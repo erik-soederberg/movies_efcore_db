@@ -18,56 +18,46 @@ public class GenresRepository : IGenresRepository
         if (existingGenre != null)
             throw new InvalidOperationException("Genre already exists");
         
-        
         var genre = new Genre { GenreName = name };
 
         db.Genres.Add(genre); 
-        
         await db.SaveChangesAsync();
 
         return genre; 
-
     }
 
     public async Task<List<Genre>> ListAllGenresAsync()
     {
         await using var db = new AppDbContext();
         
-        return await db.Genres.ToListAsync();
+        return await db.Genres
+            .AsNoTracking()
+            .ToListAsync();
     }
 
-    public async Task<List<Genre>> UpdateGenreAsync(int genreId, string newName)
+    public async Task UpdateGenreAsync(int genreId, string newName)
     {
         await using var db = new AppDbContext();
         
         var genre = await db.Genres.FindAsync(genreId);
 
         if (genre == null)
-        {
             throw new InvalidOperationException("Genre not found");
-        }
         
         genre.GenreName = newName;
-        
         await db.SaveChangesAsync();
-        
-        return await db.Genres.ToListAsync();
     }
 
-    public async Task<Genre> DeleteGenreAsync(int genreId)
+    public async Task DeleteGenreAsync(int genreId)
     {
         await using var db = new AppDbContext();
 
         var existingGenre = await db.Genres.FindAsync(genreId);
 
         if (existingGenre == null)
-        {
             throw new InvalidOperationException("Genre not found");
-        }
         
         db.Genres.Remove(existingGenre);
         await db.SaveChangesAsync();
-
-        return await DeleteGenreAsync(genreId);
     }
 }

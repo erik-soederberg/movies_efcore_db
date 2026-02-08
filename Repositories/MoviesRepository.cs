@@ -8,92 +8,81 @@ namespace Movies_EFCore.Repositories;
 
 public class MoviesRepository : IMoviesRepository
 {
-    public async Task<Movie> CreateMovieAsync(
+    public async Task<Movie> CreateMovieWithTransactionAsync(
         string title, 
         int year, 
         List<string> actorNames,
         string directorName,
         List<string> genreNames)
     {
-        
         await using var db = new AppDbContext();
 
+        // Kontrollera om filmen redan finns
         var existingMovie = await db.Movies
-            .AsNoTracking()
             .FirstOrDefaultAsync(m => m.MovieTitle == title && m.ReleaseYear == year);
         if (existingMovie != null)
             throw new InvalidOperationException("Movie already exists");
-        
-        
-        var existingDirector = await db.Directors
-            .AsNoTracking()
-            .FirstOrDefaultAsync(d => d.Name == directorName);
-        if (existingDirector != null)
-        {
-            throw new InvalidOperationException("Director already exists");
-        }
 
+        // Hämta befintlig director om finns
+        var existingDirector = await db.Directors
+            .FirstOrDefaultAsync(d => d.Name == directorName);
+
+        Director director = existingDirector ?? new Director { Name = directorName };
+
+        // Hämta eller skapa genres
         var genres = new List<Genre>();
         foreach (var genreName in genreNames)
         {
             var existingGenre = await db.Genres
-                .AsNoTracking()
                 .FirstOrDefaultAsync(g => g.GenreName == genreName);
 
             genres.Add(existingGenre ?? new Genre { GenreName = genreName });
         }
-        Director director = existingDirector ?? new Director { Name = directorName };
-        
 
+        // Skapa nya actors
+        var actors = actorNames.Select(name => new Actor { Name = name }).ToList();
+
+        // Skapa ny film
         var newMovie = new Movie
         {
             MovieTitle = title,
             ReleaseYear = year,
-            Actors = actorNames.Select(name => new Actor { Name = name }).ToList(),
+            Actors = actors,
             Director = director,
             Genres = genres
         };
-        
+
         db.Movies.Add(newMovie);
         await db.SaveChangesAsync();
 
         return newMovie;
     }
-    
 
     public async Task<List<Movie>> ListAllMoviesAsync()
     {
-
         await using var db = new AppDbContext();
-        
+
         return await db.Movies
             .AsNoTracking()
             .Include(m => m.Actors)
+            .Include(m => m.Director)
+            .Include(m => m.Genres)
             .ToListAsync();
     }
 
-
-    public async Task<List<Movie>> DeleteMovieAsync(int movieId)
+    public async Task DeleteMovieAsync(int movieId)
     {
         await using var db = new AppDbContext();
 
         var existingMovie = await db.Movies.FindAsync(movieId);
-
         if (existingMovie == null)
-        {
             throw new InvalidOperationException("Movie not found");
-        }
-        
+
         db.Movies.Remove(existingMovie);
         await db.SaveChangesAsync();
-
-        return await db.Movies.ToListAsync();
     }
-    
-    
 
-
-    public async Task<List<Movie>> UpdateMovieAsync(
+    public async Task UpdateMovieAsync(
         int movieId,
         string title,
         int year,
@@ -104,7 +93,6 @@ public class MoviesRepository : IMoviesRepository
         await using var db = new AppDbContext();
 
         var movie = await db.Movies
-            .AsNoTracking()
             .Include(m => m.Actors)
             .Include(m => m.Genres)
             .Include(m => m.Director)
@@ -115,10 +103,10 @@ public class MoviesRepository : IMoviesRepository
 
         movie.MovieTitle = title;
         movie.ReleaseYear = year;
-        
+
         var existingDirector = await db.Directors.FirstOrDefaultAsync(d => d.Name == directorName);
         movie.Director = existingDirector ?? new Director { Name = directorName };
-        
+
         var genres = new List<Genre>();
         foreach (var genreName in genreNames)
         {
@@ -126,7 +114,7 @@ public class MoviesRepository : IMoviesRepository
             genres.Add(existingGenre ?? new Genre { GenreName = genreName });
         }
         movie.Genres = genres;
-        
+
         var actors = new List<Actor>();
         foreach (var actorName in actorNames)
         {
@@ -136,61 +124,41 @@ public class MoviesRepository : IMoviesRepository
         movie.Actors = actors;
 
         await db.SaveChangesAsync();
-
-        return await ListAllMoviesAsync();
     }
-
-
-
-
-
 
     public async Task AddActorToMovieAsync(int movieId, int actorId)
     {
         await using var db = new AppDbContext();
 
         var movie = await db.Movies
-            .AsNoTracking()
             .Include(m => m.Actors)
             .FirstOrDefaultAsync(m => m.MovieId == movieId);
-
         var actor = await db.Actors
-            .AsNoTracking()
             .FirstOrDefaultAsync(a => a.ActorId == actorId);
 
         if (movie == null || actor == null)
-        {
             throw new InvalidOperationException("Movie or actor not found");
-        }
-        
+
         if (!movie.Actors.Any(a => a.ActorId == actor.ActorId))
         {
             movie.Actors.Add(actor);
             await db.SaveChangesAsync();
         }
-
-
     }
 
     public async Task RemoveActorFromMovieAsync(int movieId, int actorId)
     {
+        await using var db = new AppDbContext();
 
-        await using var db = new AppDbContext(); 
-        
         var movie = await db.Movies
-            .AsNoTracking()
             .Include(m => m.Actors)
             .FirstOrDefaultAsync(m => m.MovieId == movieId);
-        
         var actor = await db.Actors
-            .AsNoTracking()
             .FirstOrDefaultAsync(a => a.ActorId == actorId);
-        
+
         if (movie == null || actor == null)
-        {
             throw new InvalidOperationException("Movie or actor not found");
-        }
-        
+
         movie.Actors.Remove(actor);
         await db.SaveChangesAsync();
     }
@@ -205,14 +173,12 @@ public class MoviesRepository : IMoviesRepository
             {
                 Title = m.MovieTitle,
                 Year = m.ReleaseYear,
-                Director = m.Director.Name
+                Director = m.Director != null ? m.Director.Name : "Unknown"
             })
             .OrderBy(m => m.Year)
             .ToListAsync();
     }
-    
-    
-    
+
     public async Task<Dictionary<string, int>> FetchDirectorsMoviesCountAsync()
     {
         await using var db = new AppDbContext();
@@ -224,14 +190,6 @@ public class MoviesRepository : IMoviesRepository
             .Select(g => new { Director = g.Key, Count = g.Count() })
             .ToListAsync();
 
-
         return result.ToDictionary(r => r.Director, r => r.Count);
-        
     }
-    
-
-    }
-
-    
-                
-    
+}

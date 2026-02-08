@@ -59,7 +59,6 @@ public class Menu
                     await _genreMenu.StartAsync();
                     break;
                 
-
                 case 0:
                     running = false;
                     break;

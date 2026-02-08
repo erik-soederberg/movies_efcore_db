@@ -25,7 +25,6 @@ public class DirectorService
         var directors = await _directorRepository.ListAllDirectorsAsync();
         
         return directors;
-
     }
 
 
@@ -36,9 +35,9 @@ public class DirectorService
         await _directorRepository.UpdateDirectorAsync(directorId, name, age);
     }
 
-    public async Task<Director> DeleteDirectorAsync(int directorId)
-    {
-        return await _directorRepository.DeleteDirectorAsync(directorId);
+    public async Task DeleteDirectorAsync(int directorId)
+    { 
+        await _directorRepository.DeleteDirectorAsync(directorId);
     }
 
 }

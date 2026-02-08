@@ -11,7 +11,6 @@ public class DirectorsRepository : IDirectorRepository
         await using var db = new AppDbContext();
         
         var existingDirector = await db.Directors
-            .AsNoTracking()
             .FirstOrDefaultAsync(d => d.Name == name);
         if (existingDirector != null)
         {
@@ -30,8 +29,7 @@ public class DirectorsRepository : IDirectorRepository
         return director;
         
     }
-
-
+    
     public async Task<List<Director>> ListAllDirectorsAsync()
     {
         await using var db = new AppDbContext();
@@ -44,51 +42,37 @@ public class DirectorsRepository : IDirectorRepository
     }
 
 
-    public async Task<List<Director>> UpdateDirectorAsync(
-        int actorId,
-        string name,
-        int age)
+    public async Task UpdateDirectorAsync(int directorId, string name, int age)
     {
         await using var db = new AppDbContext();
-        
-        var director = await db.Directors.FindAsync(actorId);
-
+    
+        var director = await db.Directors.FindAsync(directorId);
         if (director == null)
-        {
-            return await ListAllDirectorsAsync();
-        }
-        
+            throw new InvalidOperationException("Director not found");
+
         director.Name = name;
         director.Age = age;
-        
+
         await db.SaveChangesAsync();
-        
-        return await ListAllDirectorsAsync();
-        
     }
 
 
-    public async Task<Director?> DeleteDirectorAsync(int directorId)
+
+    public async Task DeleteDirectorAsync(int directorId)
     {
         await using var db = new AppDbContext();
 
         var director = await db.Directors
-            .AsNoTracking()
             .FirstOrDefaultAsync(d => d.DirectorId == directorId);
 
         if (director == null)
         {
-            return null;
+            Console.WriteLine("Director not found");
         }
 
         db.Directors.Remove(director);
         await db.SaveChangesAsync();
-
-        return director;
+        
     }
-
-    
-    
-    
     
 }

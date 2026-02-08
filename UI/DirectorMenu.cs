@@ -1,5 +1,5 @@
 namespace Movies_EFCore.UI;
-using Services;
+using Movies_EFCore.Services;
 
 public class DirectorMenu
 {
@@ -61,10 +61,7 @@ public class DirectorMenu
                     Console.ReadKey();
                     break;
             }
-
-
         }
-
     }
 
     public async Task CreateDirectorAsync()
@@ -85,13 +82,12 @@ public class DirectorMenu
 
         try
         {
-            if (directorName != null)
+            if (!string.IsNullOrWhiteSpace(directorName))
             {
                 var director = await _directorService.CreateDirectorAsync(directorName, directorAge);
                 Console.WriteLine($"Director {director.Name} created successfully.");
             }
         }
-
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
@@ -109,9 +105,9 @@ public class DirectorMenu
 
         foreach (var director in directors)
         {
+            Console.WriteLine($"Director ID: {director.DirectorId}");
             Console.WriteLine($"Name: {director.Name}");
             Console.WriteLine($"Age: {director.Age}");
-            Console.WriteLine($"Director ID: {director.DirectorId}");
             Console.WriteLine("---------------------------");
         }
 
@@ -119,57 +115,56 @@ public class DirectorMenu
         {
             Console.WriteLine("No directors found");
         }
-
+        
         Console.ReadKey();
     }
 
     public async Task UpdateDirectorAsync()
     {
         Console.Clear();
-
         Console.WriteLine("--- Update director ---");
 
         Console.WriteLine("Enter director ID to update: ");
         var input = Console.ReadLine();
 
-        if (int.TryParse(input, out var directorId))
-        {
-            Console.WriteLine("Enter new director name: ");
-            var newName = Console.ReadLine();
-
-            Console.WriteLine("Enter new director age: ");
-            if (int.TryParse(Console.ReadLine(), out var newAge))
-            {
-                Console.WriteLine("\nAre you sure you want to update this director? (y/n): ");
-                var confirm = Console.ReadLine()?.ToLower();
-
-                if (confirm != "y")
-                {
-                    Console.WriteLine("Update cancelled.");
-                    Console.WriteLine("\nPress any key to return...");
-                    Console.ReadKey();
-                    return;
-                }
-
-                try
-                {
-                    if (newName != null) await _directorService.UpdateDirectorAsync(directorId, newName, newAge);
-                    Console.WriteLine("Director updated successfully.");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-
-            }
-            else
-            {
-                Console.WriteLine("Invalid age input!");
-            }
-        }
-        else
+        if (!int.TryParse(input, out var directorId))
         {
             Console.WriteLine("Invalid ID input!");
+            Console.ReadKey();
+            return;
+        }
+
+        Console.WriteLine("Enter new director name: ");
+        var newName = Console.ReadLine();
+
+        Console.WriteLine("Enter new director age: ");
+        if (!int.TryParse(Console.ReadLine(), out var newAge))
+        {
+            Console.WriteLine("Invalid age input!");
+            Console.ReadKey();
+            return;
+        }
+
+        Console.WriteLine("\nAre you sure you want to update this director? (y/n): ");
+        var confirm = Console.ReadLine()?.ToLower();
+
+        if (confirm != "y")
+        {
+            Console.WriteLine("Update cancelled.");
+            Console.ReadKey();
+            return;
+        }
+
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(newName))
+                await _directorService.UpdateDirectorAsync(directorId, newName, newAge);
+
+            Console.WriteLine("Director updated successfully.");
+        }
+        catch (InvalidOperationException ex)
+        {
+            Console.WriteLine(ex.Message); // t.ex. "Director not found"
         }
 
         Console.WriteLine("\nPress any key to return...");
@@ -179,7 +174,6 @@ public class DirectorMenu
     public async Task DeleteDirectorAsync()
     {
         Console.Clear();
-
         Console.WriteLine("--- Delete director ---");
         Console.Write("Enter director ID: ");
 
@@ -200,42 +194,20 @@ public class DirectorMenu
             return;
         }
 
-        var deletedDirector =
+        try
+        {
             await _directorService.DeleteDirectorAsync(directorId);
-
-        if (deletedDirector == null)
-        {
-            Console.WriteLine("Director not found.");
+            Console.WriteLine("Director deleted successfully.");
         }
-        else
+        catch (InvalidOperationException ex)
         {
-            Console.WriteLine(
-                $"Director {deletedDirector.Name} deleted successfully.");
+            Console.WriteLine(ex.Message); // t.ex. "Director not found"
         }
 
         Console.WriteLine("\nPress any key to continue...");
         Console.ReadKey();
     }
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

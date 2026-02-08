@@ -26,14 +26,14 @@ public class GenreService
         return genres;
     }
 
-    public async Task<List<Genre>> UpdateGenreAsync(int genreId, string newName)
+    public async Task UpdateGenreAsync(int genreId, string newName)
     {
-        return await _genresRepository.UpdateGenreAsync(genreId, newName);
+         await _genresRepository.UpdateGenreAsync(genreId, newName);
     }
     
-    public async Task<Genre> DeleteGenreAsync(int genreId)
+    public async Task DeleteGenreAsync(int genreId)
     {
-        return await _genresRepository.DeleteGenreAsync(genreId);
+        await _genresRepository.DeleteGenreAsync(genreId);
     }
 
 

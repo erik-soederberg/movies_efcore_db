@@ -12,7 +12,6 @@ public class ActorsRepository : IActorsRepository
         await using var db = new AppDbContext();
         
         var existingActor = await db.Actors
-            .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Name == name);
         if (existingActor != null)
             throw new InvalidOperationException("Actor already exists");
@@ -30,36 +29,19 @@ public class ActorsRepository : IActorsRepository
         return actor;
     }
 
-    public async Task<Actor> DeleteActorAsync(int actorId)
+    public async Task DeleteActorAsync(int actorId)
     {
         await using var db = new AppDbContext();
-        
+
         var existingActor = await db.Actors.FindAsync(actorId);
 
         if (existingActor == null)
-        {
-            Console.WriteLine("Actor not found");
-        }
-        
-        Console.WriteLine($"Are you sure you want to delete director {existingActor?.Name}? (y/n)");
-        var confirm = Console.ReadLine()?.ToLower();
-        
-        if (confirm != "y")
-        {
-            Console.WriteLine("Delete cancelled.");
-            Console.WriteLine("\nPress any key to return...");
-            Console.ReadKey();
-        }
+            throw new InvalidOperationException("Actor not found");
 
-        if (existingActor != null)
-        {
-            db.Actors.Remove(existingActor);
-            await db.SaveChangesAsync();
-            Console.WriteLine("Actor deleted");
-        }
-        
-        return existingActor;
+        db.Actors.Remove(existingActor);
+        await db.SaveChangesAsync();
     }
+
 
     public async Task<List<Actor>> ListAllActorsAsync()
     {
@@ -72,32 +54,25 @@ public class ActorsRepository : IActorsRepository
         
     }
 
-    public async Task<List<Actor>> UpdateActorAsync(
-        int actorId,
-        string newName,
-        int newAge)
+    public async Task UpdateActorAsync(int actorId, string newName, int newAge)
     {
         await using var db = new AppDbContext();
-        
+    
         var actor = await db.Actors.FindAsync(actorId);
 
         if (actor == null)
-        {
             throw new InvalidOperationException("Actor not found");
-        }
-        
+    
         actor.Name = newName;
         actor.Age = newAge;
-        
+    
         await db.SaveChangesAsync();
-        
-        return await UpdateActorAsync(actorId, newName, newAge);
-        
     }
+
     
     public async Task<List<Actor>> GetActorsWithMoviesAsync()
     {
-        using var db = new AppDbContext();
+        await using var db = new AppDbContext();
 
         return await db.Actors
             .AsNoTracking()                

@@ -11,12 +11,10 @@ public class Movie
     
     public int ReleaseYear { get; set; }
 
-    public List<Actor> Actors { get; set; } = new List<Actor>();
+    public List<Actor> Actors { get; set; } = new();
 
     public List<Genre> Genres { get; set; } = new(); 
     
-    
-    // Creates 1-M relationship between movies and director 
     public int DirectorId { get; set; } 
     public Director? Director { get; set; }
     

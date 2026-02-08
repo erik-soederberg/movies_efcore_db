@@ -8,5 +8,4 @@ public class MovieReleaseSummary
     
     public string? Director { get; set; }
     
-    
 }

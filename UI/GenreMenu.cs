@@ -13,10 +13,8 @@ public class GenreMenu
 
     public async Task StartAsync()
     {
-        
         var running = true;
-
-
+        
         while (running)
         {
             Console.Clear();
@@ -39,7 +37,6 @@ public class GenreMenu
 
             switch (choice)
             {
-                
                 case 1:
                 await CreateGenreAsync();
                 break;
@@ -62,7 +59,6 @@ public class GenreMenu
                 default: Console.WriteLine("Invalid choice");
                     Console.ReadKey();
                     break;
-                
             }
             
         }
@@ -75,7 +71,14 @@ public class GenreMenu
         
         Console.WriteLine("Enter genre name: ");
         var genreName = Console.ReadLine();
-
+        
+        if (string.IsNullOrWhiteSpace(genreName))
+        {
+            Console.WriteLine("Genre name cannot be empty.");
+            Console.ReadKey();
+            return;
+        }
+        
         try
         {
             var genre = await _genreService.CreateGenreAsync(genreName);
@@ -127,6 +130,12 @@ public class GenreMenu
         Console.WriteLine("Enter new genre name: ");
         var genreName = Console.ReadLine();
         
+        if (string.IsNullOrWhiteSpace(genreName))
+        {
+            Console.WriteLine("Genre name cannot be empty.");
+            Console.ReadKey();
+            return;
+        }
         
         Console.WriteLine("\nAre you sure you want to update this genre? (y/n): ");
         var confirm = Console.ReadLine()?.ToLower();
@@ -161,54 +170,63 @@ public class GenreMenu
         Console.WriteLine("--- Delete genre ---");
         Console.Write("Enter genre ID: ");
         var input = Console.ReadLine();
-        
-        
+
+
         Console.WriteLine($"Are you sure you want to delete this movie? (y/n)");
         var confirm = Console.ReadLine()?.ToLower();
 
         if (confirm != "y")
         {
-            Console.WriteLine("Delete cancelled."); 
+            Console.WriteLine("Delete cancelled.");
             Console.WriteLine("\nPress any key to return...");
             Console.ReadKey();
+            return;
         }
 
-        if (int.TryParse(input, out var genreId))
+        if (!int.TryParse(input, out var genreId))
+        {
+            Console.WriteLine("Invalid ID.");
+            Console.ReadKey();
+            return;
+        }
+
+        try
         {
             await _genreService.DeleteGenreAsync(genreId);
             Console.WriteLine("Genre deleted.");
         }
-
-        else
+        catch (Exception ex)
         {
-            Console.WriteLine("Invalid ID.");
+            Console.WriteLine(ex.Message);
         }
-        
+
         Console.ReadKey();
     }
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
